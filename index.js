@@ -36,5 +36,41 @@ function logActivity(message) {
     log.appendChild(newLogItem);
 }
 
+//handling nav buttons to switch panels
+document.querySelectorAll('.nav-btn').forEach(button => {
+    button.addEventListener('click', function(){
+        const feature = button.getAttribute('data-feature');
+        loadFeatureContent(feature); //call functionto load the selected feature
+    });
+});
 
+// function the load content dynamically based on selected feature
+function loadFeatureContent(feature) {
+    const contentArea = document.getElementById('dynamic-content');  // Get the dynamic content area
 
+    // Switch content based on the feature selected
+    if (feature === 'account-management') {
+        contentArea.innerHTML = `<h1>Account Management</h1><p>Manage your stored accounts here.</p>`;
+        logActivity('Accessed Account Management.');
+    } else if (feature === 'password-generator-health') {
+        contentArea.innerHTML = `<h1>Password Generator & Health</h1><p>Generate strong passwords and check password health.</p>`;
+        logActivity('Accessed Password Generator & Health.');
+    } else if (feature === 'backup-restore') {
+        contentArea.innerHTML = `
+            <h1>Backup & Restore</h1>
+            <p>Backup or restore your data securely. Generate a QR code for backup.</p>
+            <button onclick="generateQRCode()">Generate QR Code for Backup</button>
+            <canvas id="qrcode" style="display:none;"></canvas>
+        `;
+        logActivity('Accessed Backup & Restore.');
+    } else if (feature === 'two-factor-auth') {
+        contentArea.innerHTML = `<h1>Two-Factor Authentication</h1><p>Set up two-factor authentication for extra security.</p>`;
+        logActivity('Accessed Two-Factor Authentication.');
+    } else if (feature === 'settings') {
+        contentArea.innerHTML = `<h1>Settings</h1><p>Manage application settings here.</p>`;
+        logActivity('Accessed Settings.');
+    } else if (feature === 'logout') {
+        window.location.reload();  // Reload the page to simulate logout
+        logActivity('Logged out.');
+    }
+}
