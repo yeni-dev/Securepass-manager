@@ -8,8 +8,8 @@ document.getElementById('login-form').addEventListener("submit", function(e) {
 
 
     //get enter input
-    const username = document.getElementById(admin-username).value;
-    const password = document.getElementById(admin-password).value;
+    const username = document.getElementById('admin-username').value;
+    const password = document.getElementById('admin-password').value;
 
     //check if the input is correct
     if (username == masterUser && password == masterPass) {
@@ -35,4 +35,6 @@ function logActivity(message) {
     newLogItem.textContent = message;
     log.appendChild(newLogItem);
 }
+
+
 

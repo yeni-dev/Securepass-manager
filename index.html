@@ -66,8 +66,9 @@
     /* Main Container Styling */
     .container {
       display: flex;
+      flex-direction: row;  /* Ensure elements are aligned horizontally */
       height: 100vh;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;  /* Prevent wrapping of left and main panels */
     }
 
     .left-panel {
@@ -100,10 +101,14 @@
       background-color: #ecf0f1;
       padding: 20px;
       box-sizing: border-box;
+      flex-grow: 1;  /* Allow this panel to take up remaining space */
     }
 
     .dynamic-content {
       margin-top: 20px;
+    }
+    #main-container {
+      display: none;  /* Hide the main container until login */
     }
 
 
@@ -125,7 +130,7 @@
 
 <!-------Dashboard Area------><!-------Dashboard Area------>
 
-<<!-- Main Container (Hidden until login) -->
+<!-- Main Container (Hidden until login) -->
 <div class="container" id="main-container">
   <!-- Left Panel (Navigation) -->
   <div class="left-panel">
