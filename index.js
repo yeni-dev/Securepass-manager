@@ -74,3 +74,19 @@ function loadFeatureContent(feature) {
         logActivity('Logged out.');
     }
 }
+
+// Function to generate the QR code from encrypted JSON data
+function generateQRCode() {
+    // Let's assume encryptedData is the stringified JSON of encrypted account data
+    let encryptedData = localStorage.getItem('encryptedPasswords');  // Retrieve your encrypted JSON data
+
+    // Create the QR code on the canvas element
+    let qr = new QRious({
+        element: document.getElementById('qrcode'),  // Target the canvas element
+        value: encryptedData,  // The data to encode into the QR code
+        size: 200  // Size of the QR code
+    });
+
+    // Show the QR code canvas (hidden by default)
+    document.getElementById('qrcode').style.display = 'block';
+}
