@@ -4,14 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SecurePass</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-
-<!-------Login Area------><!-------Login Area------>
-
-<div class="login-area" id="login-page">
+<!-- Login Page -->
+<div id="login-page" class="login-area">
   <form id="login-form">
     <h2>Login</h2>
     <input type="text" id="admin-username" placeholder="Username" required>
@@ -20,35 +18,28 @@
   </form>
 </div>
 
-<!-------Dashboard Area------><!-------Dashboard Area------>
-
-<!-- Main Container (Hidden until login) -->
-<div class="container" id="main-container">
-  <!-- Left Panel (Navigation) -->
+<!-- Main Container for Vault Management -->
+<div id="main-container" class="container">
+  <!-- Left Panel for Navigation -->
   <div class="left-panel">
     <h1>Security Dashboard</h1>
     <button class="nav-btn" data-feature="account-management">Account Management</button>
     <button class="nav-btn" data-feature="password-generator-health">Password Generator & Health</button>
     <button class="nav-btn" data-feature="backup-restore">Backup & Restore</button>
-    <button class="nav-btn" data-feature="two-factor-auth">Two-Factor Authentication</button>
     <button class="nav-btn" data-feature="settings">Settings</button>
-    <div class="activity-log" id="activity-log"></div>
     <button class="nav-btn" data-feature="logout">Logout</button>
   </div>
 
-  <!-- Main Dynamic Panel -->
+  <!-- Main Panel for Dynamic Content -->
   <div class="main-panel">
     <h2>Welcome to Your Security Pass</h2>
-    <div class="dynamic-content" id="dynamic-content">
+    <div id="dynamic-content" class="dynamic-content">
       <p>Select an option from the left to begin managing your passwords and accounts.</p>
     </div>
   </div>
 </div>
-<!-- QR Code Canvas for Backup -->
-<canvas id="qrcode" style="display:none;"></canvas>
 
+<!-- Include the JavaScript -->
+<script src="index.js"></script>
 </body>
-
-<script src="/index.js"></script>
-
 </html>

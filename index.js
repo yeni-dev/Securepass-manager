@@ -1,54 +1,63 @@
 //Initial Data
-const masterUser = "admin" // defines the master username
-const masterPass = "supersecret" // defines the master passwrod
+const masterUser = "admin" // master username
+const masterPass = "supersecret" // master password
 
-//Login form handling
+// Handle login form submission
 document.getElementById('login-form').addEventListener("submit", function(e) {
-    e.preventDefault(); //stops form refreshing page
+    e.preventDefault(); // don't refresh the page
 
-
-    //get enter input
+    // Get the username and password from the form inputs
     const username = document.getElementById('admin-username').value;
     const password = document.getElementById('admin-password').value;
 
-    //check if the input is correct
-    if (username == masterUser && password == masterPass) {
-        logActivity("Logged in!");
-        showMain(); //show the main application on successful login
-    }else{
-        alert("incorrect username and password");
-        logActivity("Failed login attempt")
+    // Check if the username and password match
+    if (username === masterUser && password === masterPass) {
+        logActivity("Logged in!"); // log the successful login
+        showMain(); // show the main app if login is successful
+        console.log('logged in!');
+    } else {
+        alert("Incorrect username or password"); // if login fails
+        logActivity("Failed login attempt"); // log the failure
     }
 });
-    //show the main section after login
+
+// Show the main app after login
 function showMain() {
-    document.getElementById("login-page").style.display = "none"; //hide login
-    document.getElementById("main-container").style.display = "flex"; //show main
-
+    document.getElementById("login-page").style.display = "none"; // hide the login form
+    document.getElementById("main-container").style.display = "flex"; // show the main container
 }
 
-
-//function to log activity to the activity log in the left panel
-function logActivity(message) {
-    const log = document.getElementById('activity-log')
-    const newLogItem = document.createElement('p');
-    newLogItem.textContent = message;
-    log.appendChild(newLogItem);
-}
-
-//handling nav buttons to switch panels
+// Ensure Account Management is displayed when its button is clicked
 document.querySelectorAll('.nav-btn').forEach(button => {
-    button.addEventListener('click', function(){
-        const feature = button.getAttribute('data-feature');
-        loadFeatureContent(feature); //call functionto load the selected feature
+    button.addEventListener('click', function () {
+        const feature = button.getAttribute('data-feature'); // get the feature name
+        if (feature === 'account-management') {
+            displayAccounts();  // show Account Management content
+        }
     });
 });
 
-// function the load content dynamically based on selected feature
-function loadFeatureContent(feature) {
-    const contentArea = document.getElementById('dynamic-content');  // Get the dynamic content area
+// Function to log activity (just writes a message to the log panel)
+function logActivity(message) {
+    const log = document.getElementById('activity-log'); // get the activity log container
+    const newLogItem = document.createElement('p'); // create a new log entry
+    newLogItem.textContent = message; // set the text of the log entry
+    log.appendChild(newLogItem); // add the log entry to the log
+}
 
-    // Switch content based on the feature selected
+// Handle button clicks for switching between features
+document.querySelectorAll('.nav-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const feature = button.getAttribute('data-feature'); // get the selected feature
+        loadFeatureContent(feature); // load the feature's content
+    });
+});
+
+// Dynamically load content based on the selected feature
+function loadFeatureContent(feature) {
+    const contentArea = document.getElementById('dynamic-content'); // get the content area
+
+    // Show different content depending on the selected feature
     if (feature === 'account-management') {
         contentArea.innerHTML = `<h1>Account Management</h1><p>Manage your stored accounts here.</p>`;
         logActivity('Accessed Account Management.');
@@ -70,37 +79,34 @@ function loadFeatureContent(feature) {
         contentArea.innerHTML = `<h1>Settings</h1><p>Manage application settings here.</p>`;
         logActivity('Accessed Settings.');
     } else if (feature === 'logout') {
-        window.location.reload();  // Reload the page to simulate logout
+        window.location.reload();  // reload the page to simulate logout
         logActivity('Logged out.');
     }
 }
 
-// Function to generate the QR code from encrypted JSON data
+// QR Code generator (for backups)
 function generateQRCode() {
-    // Let's assume encryptedData is the stringified JSON of encrypted account data
-    let encryptedData = localStorage.getItem('encryptedPasswords');  // Retrieve your encrypted JSON data
+    let encryptedData = localStorage.getItem('encryptedPasswords');  // grab encrypted data from localStorage
 
-    // Create the QR code on the canvas element
+    // Create a QR code
     let qr = new QRious({
-        element: document.getElementById('qrcode'),  // Target the canvas element
-        value: encryptedData,  // The data to encode into the QR code
-        size: 200  // Size of the QR code
+        element: document.getElementById('qrcode'),  // target the canvas
+        value: encryptedData,  // the data to encode
+        size: 200  // size of the QR code
     });
 
-    // Show the QR code canvas (hidden by default)
+    // Show the QR code
     document.getElementById('qrcode').style.display = 'block';
 }
 
-
-//JSON file hfandling
-
+// Sample JSON data for accounts
 let accountsData = {
     accounts: [
         {
             service: "Google",
             username: "ethan ade",
             password: "supersecret123",
-            notes: "my personal account google",
+            notes: "My personal Google account",
             tags: ["social", "personal"]
         },
         {
@@ -110,24 +116,19 @@ let accountsData = {
             notes: "Primary email account",
             tags: ["email", "work"]
         }
-
-
     ]
 };
-//Saving the json locally
+
+// Save the account data in localStorage (pretend this is encrypted)
 localStorage.setItem('accountData', JSON.stringify(accountsData));
 
-//retieving the stored json
+// Get the stored account data (also pretend this is encrypted)
+let storedAccountData = JSON.parse(localStorage.getItem('accountData'));
 
-let storedAccountdata = JSON.parse(localStorage.getItem('accountData'));
-
-//check if data exists and log it for now
-if(storedAccountdata){
-    console.log(storedAccountdata);
+// Check if the data exists and log it
+if (storedAccountData) {
+    console.log(storedAccountData);
 }
-
-
-//FUNCTION TO DISPLAY THE ACCOUNTS IN HTE ACCOUNTS MANAHEMTN PANEL
 
 // Function to display accounts in the Account Management panel
 function displayAccounts() {
@@ -137,12 +138,49 @@ function displayAccounts() {
     // Clear previous content
     contentArea.innerHTML = '';
 
-    // Check if there are accounts stored
-    if (storedAccountData && storedAccountData.accounts.length > 0) {
-        // Create a heading
-        contentArea.innerHTML = '<h1>Account Management</h1>';
+    // Add account form
+    let addAccountForm = `
+        <h1>Account Management</h1>
+        <form id="add-account-form">
+            <input type="text" id="new-service" placeholder="Service Name" required>
+            <input type="text" id="new-username" placeholder="Username" required>
+            <input type="password" id="new-password" placeholder="Password" required>
+            <input type="text" id="new-notes" placeholder="Notes">
+            <input type="text" id="new-tags" placeholder="Tags (comma separated)">
+            <button type="submit">Add Account</button> <!-- This is the submit button -->
+        </form>
+        <hr>
+    `;
 
-        // Loop through accounts and create the HTML structure for displaying accounts
+    contentArea.innerHTML += addAccountForm;  // Add the form to the content area
+
+    // Check the console to verify form is added correctly
+    console.log('Add account form HTML:', addAccountForm);
+
+    // Form submission handling for adding a new account
+    document.getElementById('add-account-form').addEventListener('submit', function (e) {
+        e.preventDefault(); // prevent page refresh
+
+        // Get values from the input fields
+        const service = document.getElementById('new-service').value;
+        const username = document.getElementById('new-username').value;
+        const password = document.getElementById('new-password').value;
+        const notes = document.getElementById('new-notes').value;
+        const tags = document.getElementById('new-tags').value;
+
+        // Add the new account to the stored data
+        addNewAccount(service, username, password, notes, tags);
+
+        // Clear the form after submission
+        document.getElementById('add-account-form').reset();
+
+        // Refresh the display of accounts
+        displayAccounts();
+        console.log('Displaying accounts...');  // Log when displayAccounts() is called
+    });
+
+    // If accounts exist, display them
+    if (storedAccountData && storedAccountData.accounts.length > 0) {
         storedAccountData.accounts.forEach(account => {
             let accountHTML = `
                 <div class="account-entry">
@@ -154,50 +192,32 @@ function displayAccounts() {
                 </div>
                 <hr>
             `;
-            contentArea.innerHTML += accountHTML;  // Append each account to the content area
-
-
-
-
-
-
-
+            contentArea.innerHTML += accountHTML;  // Append each account
         });
-
-
     } else {
         contentArea.innerHTML = '<p>No accounts stored.</p>';
     }
 }
 
-// Call this function when "Account Management" is accessed
-document.querySelectorAll('.nav-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const feature = button.getAttribute('data-feature');
-        if (feature === 'account-management') {
-            displayAccounts();  // Display accounts when Account Management is selected
-        }
-    });
-});
 
+// Function to add a new account to localStorage
+function addNewAccount(service, username, password, notes, tags) {
+    let storedAccountData = JSON.parse(localStorage.getItem('accountData')) || { accounts: [] }; // Get existing accounts
 
+    // Create the new account
+    const newAccount = {
+        service: service,
+        username: username,
+        password: password,
+        notes: notes,
+        tags: tags
+    };
 
+    // Add the new account to the list
+    storedAccountData.accounts.push(newAccount);
 
+    // Save the updated list back to localStorage
+    localStorage.setItem('accountData', JSON.stringify(storedAccountData));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    console.log('New account data:', service, username, password, notes, tags); // Debug
+}
