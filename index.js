@@ -90,3 +90,114 @@ function generateQRCode() {
     // Show the QR code canvas (hidden by default)
     document.getElementById('qrcode').style.display = 'block';
 }
+
+
+//JSON file hfandling
+
+let accountsData = {
+    accounts: [
+        {
+            service: "Google",
+            username: "ethan ade",
+            password: "supersecret123",
+            notes: "my personal account google",
+            tags: ["social", "personal"]
+        },
+        {
+            service: "Gmail",
+            username: "john.doe@gmail.com",
+            password: "emailPassword321!",
+            notes: "Primary email account",
+            tags: ["email", "work"]
+        }
+
+
+    ]
+};
+//Saving the json locally
+localStorage.setItem('accountData', JSON.stringify(accountsData));
+
+//retieving the stored json
+
+let storedAccountdata = JSON.parse(localStorage.getItem('accountData'));
+
+//check if data exists and log it for now
+if(storedAccountdata){
+    console.log(storedAccountdata);
+}
+
+
+//FUNCTION TO DISPLAY THE ACCOUNTS IN HTE ACCOUNTS MANAHEMTN PANEL
+
+// Function to display accounts in the Account Management panel
+function displayAccounts() {
+    let storedAccountData = JSON.parse(localStorage.getItem('accountData'));  // Get the account data from localStorage
+    const contentArea = document.getElementById('dynamic-content');  // The dynamic content area
+
+    // Clear previous content
+    contentArea.innerHTML = '';
+
+    // Check if there are accounts stored
+    if (storedAccountData && storedAccountData.accounts.length > 0) {
+        // Create a heading
+        contentArea.innerHTML = '<h1>Account Management</h1>';
+
+        // Loop through accounts and create the HTML structure for displaying accounts
+        storedAccountData.accounts.forEach(account => {
+            let accountHTML = `
+                <div class="account-entry">
+                    <h3>${account.service}</h3>
+                    <p><strong>Username:</strong> ${account.username}</p>
+                    <p><strong>Password:</strong> ${account.password}</p>
+                    <p><strong>Notes:</strong> ${account.notes}</p>
+                    <p><strong>Tags:</strong> ${account.tags.join(', ')}</p>
+                </div>
+                <hr>
+            `;
+            contentArea.innerHTML += accountHTML;  // Append each account to the content area
+
+
+
+
+
+
+
+        });
+
+
+    } else {
+        contentArea.innerHTML = '<p>No accounts stored.</p>';
+    }
+}
+
+// Call this function when "Account Management" is accessed
+document.querySelectorAll('.nav-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        const feature = button.getAttribute('data-feature');
+        if (feature === 'account-management') {
+            displayAccounts();  // Display accounts when Account Management is selected
+        }
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

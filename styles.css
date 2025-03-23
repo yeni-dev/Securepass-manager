@@ -1,0 +1,106 @@
+/* General Styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+/* Login Form Styling */
+.login-area{
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-area form {
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-area input {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    width: 90%;
+}
+
+.login-area button {
+    padding: 10px;
+    background-color: #1abc9c;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.login-area button:hover {
+    background-color: #16a085;
+}
+
+
+.activity-log {
+    max-height: 150px;
+    overflow-y: scroll;
+    padding: 5px;
+    background-color: #34495e;
+    border: 1px solid #1abc9c;
+    font-size: 12px;
+    color: white;
+}
+
+.activity-log p {
+    margin: 5px 0;
+}
+
+/* Main Container Styling */
+.container {
+    display: flex;
+    flex-direction: row;  /* Ensure elements are aligned horizontally */
+    height: 100vh;
+    flex-wrap: nowrap;  /* Prevent wrapping of left and main panels */
+}
+
+.left-panel {
+    width: 20%;
+    background-color: #2c3e50;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.nav-btn {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #34495e;
+    border: none;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background-color: #1abc9c;
+}
+
+.main-panel {
+    width: 80%;
+    background-color: #ecf0f1;
+    padding: 20px;
+    box-sizing: border-box;
+    flex-grow: 1;  /* Allow this panel to take up remaining space */
+}
+
+.dynamic-content {
+    margin-top: 20px;
+}
+#main-container {
+    display: none;  /* Hide the main container until login */
+}
+
