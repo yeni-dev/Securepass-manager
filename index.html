@@ -9,7 +9,7 @@
 <body>
 
 <!-- Login Page -->
-<div id="login-page" class="login-area">
+<div class="login-area" id="login-page">
   <form id="login-form">
     <h2>Login</h2>
     <input type="text" id="admin-username" placeholder="Username" required>
@@ -17,7 +17,6 @@
     <button type="submit">Login</button>
   </form>
 </div>
-
 <!-- Main Container for Vault Management -->
 <div id="main-container" class="container">
   <!-- Left Panel for Navigation -->
@@ -27,6 +26,7 @@
     <button class="nav-btn" data-feature="password-generator-health">Password Generator & Health</button>
     <button class="nav-btn" data-feature="backup-restore">Backup & Restore</button>
     <button class="nav-btn" data-feature="settings">Settings</button>
+    <div class="activity-log" id="activity-log"></div>
     <button class="nav-btn" data-feature="logout">Logout</button>
   </div>
 

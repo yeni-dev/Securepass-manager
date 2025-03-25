@@ -1,223 +1,326 @@
-//Initial Data
-const masterUser = "admin" // master username
-const masterPass = "supersecret" // master password
+// Master login details for demonstration purposes
+const masterUser = "admin";
+const masterPass = "supersecret";
 
-// Handle login form submission
-document.getElementById('login-form').addEventListener("submit", function(e) {
-    e.preventDefault(); // don't refresh the page
-
-    // Get the username and password from the form inputs
+// Handle Login
+document.getElementById('login-form').addEventListener("submit", function (e) {
+    e.preventDefault();
     const username = document.getElementById('admin-username').value;
     const password = document.getElementById('admin-password').value;
 
-    // Check if the username and password match
     if (username === masterUser && password === masterPass) {
-        logActivity("Logged in!"); // log the successful login
-        showMain(); // show the main app if login is successful
-        console.log('logged in!');
+        logActivity("Logged in!");
+        document.getElementById('login-page').style.display = 'none'; // Hide login form
+        displayVaultSelection(); // Show vault selection form
     } else {
-        alert("Incorrect username or password"); // if login fails
-        logActivity("Failed login attempt"); // log the failure
+        alert("Incorrect username or password");
     }
 });
 
-// Show the main app after login
-function showMain() {
-    document.getElementById("login-page").style.display = "none"; // hide the login form
-    document.getElementById("main-container").style.display = "flex"; // show the main container
-}
-
-// Ensure Account Management is displayed when its button is clicked
-document.querySelectorAll('.nav-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const feature = button.getAttribute('data-feature'); // get the feature name
-        if (feature === 'account-management') {
-            displayAccounts();  // show Account Management content
-        }
-    });
-});
-
-// Function to log activity (just writes a message to the log panel)
 function logActivity(message) {
     const log = document.getElementById('activity-log'); // get the activity log container
     const newLogItem = document.createElement('p'); // create a new log entry
     newLogItem.textContent = message; // set the text of the log entry
     log.appendChild(newLogItem); // add the log entry to the log
+
+    // Ensure the latest log entry is visible (auto scroll to bottom)
+
+// Add some log entries to simulate activity
+    logActivity("Test log #1");
+    logActivity("Test log #2");
+    logActivity("Test log #3");
+    logActivity("Test log #4");
+    logActivity("Test log #5");
+
 }
 
-// Handle button clicks for switching between features
-document.querySelectorAll('.nav-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const feature = button.getAttribute('data-feature'); // get the selected feature
-        loadFeatureContent(feature); // load the feature's content
+// Display form for selecting or creating vaults
+function displayVaultSelection() {
+    const contentArea = document.getElementById('dynamic-content');
+    let vaults = JSON.parse(localStorage.getItem('vaults')) || [];
+
+    // Create the form dynamically
+    let formHTML = `<h1>Select or Create a Vault</h1>`;
+
+    // Show existing vaults if available
+    if (vaults.length > 0) {
+        formHTML += `<h3>Existing Vaults</h3><form id="select-vault-form"><select id="vault-selector">`;
+        vaults.forEach(vault => {
+            formHTML += `<option value="${vault}">${vault}</option>`;
+        });
+        formHTML += `</select><button type="submit">Open Vault</button></form>`;
+    } else {
+        formHTML += `<p>No vaults available. Create a new one below.</p>`;
+    }
+
+    // Form for creating a new vault
+    formHTML += `
+        <h3>Create New Vault</h3>
+        <form id="create-vault-form">
+            <input type="text" id="new-vault-name" placeholder="Vault Name" required>
+            <button type="submit">Create Vault</button>
+        </form>
+    `;
+
+    contentArea.innerHTML = formHTML;
+
+    // Handle opening an existing vault
+    if (vaults.length > 0) {
+        document.getElementById('select-vault-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const selectedVault = document.getElementById('vault-selector').value;
+            openVault(selectedVault);
+        });
+    }
+
+    // Handle creating a new vault
+    document.getElementById('create-vault-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const vaultName = document.getElementById('new-vault-name').value;
+        createNewVault(vaultName);
     });
-});
+}
 
-// Dynamically load content based on the selected feature
-function loadFeatureContent(feature) {
-    const contentArea = document.getElementById('dynamic-content'); // get the content area
+// Create a new vault
+function createNewVault(vaultName) {
+    if (vaultName) {
+        let vaults = JSON.parse(localStorage.getItem('vaults')) || [];
+        vaults.push(vaultName + ".json");
+        localStorage.setItem('vaults', JSON.stringify(vaults));
 
-    // Show different content depending on the selected feature
-    if (feature === 'account-management') {
-        contentArea.innerHTML = `<h1>Account Management</h1><p>Manage your stored accounts here.</p>`;
-        logActivity('Accessed Account Management.');
-    } else if (feature === 'password-generator-health') {
-        contentArea.innerHTML = `<h1>Password Generator & Health</h1><p>Generate strong passwords and check password health.</p>`;
-        logActivity('Accessed Password Generator & Health.');
-    } else if (feature === 'backup-restore') {
-        contentArea.innerHTML = `
-            <h1>Backup & Restore</h1>
-            <p>Backup or restore your data securely. Generate a QR code for backup.</p>
-            <button onclick="generateQRCode()">Generate QR Code for Backup</button>
-            <canvas id="qrcode" style="display:none;"></canvas>
-        `;
-        logActivity('Accessed Backup & Restore.');
-    } else if (feature === 'two-factor-auth') {
-        contentArea.innerHTML = `<h1>Two-Factor Authentication</h1><p>Set up two-factor authentication for extra security.</p>`;
-        logActivity('Accessed Two-Factor Authentication.');
-    } else if (feature === 'settings') {
-        contentArea.innerHTML = `<h1>Settings</h1><p>Manage application settings here.</p>`;
-        logActivity('Accessed Settings.');
-    } else if (feature === 'logout') {
-        window.location.reload();  // reload the page to simulate logout
-        logActivity('Logged out.');
+        // Create the vault in localStorage (unencrypted for now)
+        localStorage.setItem(vaultName + '.json', JSON.stringify({ accounts: [] }));
+        openVault(vaultName + ".json");
     }
 }
 
-// QR Code generator (for backups)
-function generateQRCode() {
-    let encryptedData = localStorage.getItem('encryptedPasswords');  // grab encrypted data from localStorage
+// Open an existing vault
+function openVault(vaultName) {
+    logActivity(`Opened vault: ${vaultName}`);
+    const vaultData = localStorage.getItem(vaultName);
+    if (vaultData) {
+        // Store the current vault name in localStorage
+        localStorage.setItem('currentVault', vaultName);
+        displayAccounts(JSON.parse(vaultData));
+    } else {
+        alert("Vault not found.");
+    }
+}
 
-    // Create a QR code
-    let qr = new QRious({
-        element: document.getElementById('qrcode'),  // target the canvas
-        value: encryptedData,  // the data to encode
-        size: 200  // size of the QR code
+// Setup navigation for different panels
+
+document.querySelectorAll('.nav-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const feature = button.getAttribute('data-feature'); // get the selected feature
+            loadFeatureContent(feature); // load the feature's content
     });
+});
 
-    // Show the QR code
-    document.getElementById('qrcode').style.display = 'block';
+
+// Function to switch between active panels
+function loadFeatureContent(feature) {
+    const contentArea = document.getElementById('dynamic-content'); // The dynamic content area
+
+    if (feature === 'account-management') {
+        const vaultName = localStorage.getItem('currentVault');
+        const vaultData = JSON.parse(localStorage.getItem(vaultName));
+        displayAccounts(vaultData);
+    } else if (feature === 'password-generator-health') {
+        passwordGeneratorAndHealth();
+    } else if (feature === 'backup-restore') {
+        displayBackupRestoreOptions();
+    } else if (feature === 'settings') {
+        displaySettings(); // Placeholder for settings
+    } else if (feature === 'logout') {
+        encryptAndLogout();  // Placeholder for logout functionality
+    }
 }
 
-// Sample JSON data for accounts
-let accountsData = {
-    accounts: [
-        {
-            service: "Google",
-            username: "ethan ade",
-            password: "supersecret123",
-            notes: "My personal Google account",
-            tags: ["social", "personal"]
-        },
-        {
-            service: "Gmail",
-            username: "john.doe@gmail.com",
-            password: "emailPassword321!",
-            notes: "Primary email account",
-            tags: ["email", "work"]
-        }
-    ]
-};
+function encryptAndLogout() {
+    //encryption
 
-// Save the account data in localStorage (pretend this is encrypted)
-localStorage.setItem('accountData', JSON.stringify(accountsData));
-
-// Get the stored account data (also pretend this is encrypted)
-let storedAccountData = JSON.parse(localStorage.getItem('accountData'));
-
-// Check if the data exists and log it
-if (storedAccountData) {
-    console.log(storedAccountData);
+    window.location.reload();  // reload the page to simulate logout
+    logActivity('Logged out.');
 }
 
-// Function to display accounts in the Account Management panel
-function displayAccounts() {
-    let storedAccountData = JSON.parse(localStorage.getItem('accountData'));  // Get the account data from localStorage
-    const contentArea = document.getElementById('dynamic-content');  // The dynamic content area
 
-    // Clear previous content
-    contentArea.innerHTML = '';
 
-    // Add account form
-    let addAccountForm = `
-        <h1>Account Management</h1>
+
+
+// Display accounts in the Account Management section
+function displayAccounts(vaultData) {
+    const contentArea = document.getElementById('dynamic-content');
+    contentArea.innerHTML = '<h1>Account Management</h1>';
+
+    // Display existing accounts
+    if (vaultData && vaultData.accounts.length > 0) {
+        vaultData.accounts.forEach(account => {
+            contentArea.innerHTML += `
+                <div>
+                    <h3>${account.service}</h3>
+                    <p><strong>Username:</strong> ${account.username}</p>
+                    <p><strong>Password:</strong> ${account.password}</p>
+                </div>
+                <hr>
+            `;
+        });
+    } else {
+        contentArea.innerHTML += '<p>No accounts stored.</p>';
+    }
+
+    // Add form to create new accounts
+    contentArea.innerHTML += `
+        <h3>Add New Account</h3>
         <form id="add-account-form">
             <input type="text" id="new-service" placeholder="Service Name" required>
             <input type="text" id="new-username" placeholder="Username" required>
             <input type="password" id="new-password" placeholder="Password" required>
-            <input type="text" id="new-notes" placeholder="Notes">
-            <input type="text" id="new-tags" placeholder="Tags (comma separated)">
-            <button type="submit">Add Account</button> <!-- This is the submit button -->
+            <button type="submit">Add Account</button>
         </form>
-        <hr>
+        <button id="view-json-btn">View Vault JSON</button> <!-- View JSON Vault Button -->
     `;
 
-    contentArea.innerHTML += addAccountForm;  // Add the form to the content area
-
-    // Check the console to verify form is added correctly
-    console.log('Add account form HTML:', addAccountForm);
-
-    // Form submission handling for adding a new account
+    // Handle adding new accounts
     document.getElementById('add-account-form').addEventListener('submit', function (e) {
-        e.preventDefault(); // prevent page refresh
-
-        // Get values from the input fields
+        e.preventDefault();
         const service = document.getElementById('new-service').value;
         const username = document.getElementById('new-username').value;
         const password = document.getElementById('new-password').value;
-        const notes = document.getElementById('new-notes').value;
-        const tags = document.getElementById('new-tags').value;
-
-        // Add the new account to the stored data
-        addNewAccount(service, username, password, notes, tags);
-
-        // Clear the form after submission
-        document.getElementById('add-account-form').reset();
-
-        // Refresh the display of accounts
-        displayAccounts();
-        console.log('Displaying accounts...');  // Log when displayAccounts() is called
+        addNewAccount(service, username, password);
     });
 
-    // If accounts exist, display them
-    if (storedAccountData && storedAccountData.accounts.length > 0) {
-        storedAccountData.accounts.forEach(account => {
-            let accountHTML = `
-                <div class="account-entry">
-                    <h3>${account.service}</h3>
-                    <p><strong>Username:</strong> ${account.username}</p>
-                    <p><strong>Password:</strong> ${account.password}</p>
-                    <p><strong>Notes:</strong> ${account.notes}</p>
-                    <p><strong>Tags:</strong> ${account.tags.join(', ')}</p>
-                </div>
-                <hr>
-            `;
-            contentArea.innerHTML += accountHTML;  // Append each account
-        });
+    // Handle viewing the raw JSON for the current vault
+    document.getElementById('view-json-btn').addEventListener('click', function () {
+        const vaultName = localStorage.getItem('currentVault');
+        const vaultData = localStorage.getItem(vaultName);
+        alert(`Vault JSON: \n${vaultData}`);
+    });
+}
+
+// Add a new account to the vault
+function addNewAccount(service, username, password) {
+    const vaultName = localStorage.getItem('currentVault');
+    let vaultData = JSON.parse(localStorage.getItem(vaultName));
+
+    const newAccount = { service, username, password };
+    vaultData.accounts.push(newAccount);
+
+    localStorage.setItem(vaultName, JSON.stringify(vaultData));
+    displayAccounts(vaultData);  // Refresh the account list
+}
+
+// Handle Backup & Restore
+function displayBackupRestoreOptions() {
+    const contentArea = document.getElementById('dynamic-content');
+    contentArea.innerHTML = `
+        <h1>Backup & Restore</h1>
+        <button onclick="backupVault()">Backup Vault</button>
+        <input type="file" id="restore-file-input">
+        <button onclick="restoreVaultFromFile()">Restore Vault</button>
+    `;
+
+    // Handle restoring from file input
+    document.getElementById('restore-file-input').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            restoreVault(file);
+        }
+    });
+}
+
+// Backup the current vault
+function backupVault() {
+    const vaultName = localStorage.getItem('currentVault');
+    const vaultData = localStorage.getItem(vaultName);
+
+    if (vaultData) {
+        // Create a backup with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
+        const backupName = `${vaultName}_backup_${timestamp}.json`;
+
+        // For now, no encryption, just save the JSON
+        saveToFile(vaultData, backupName);
+        alert("Backup created successfully.");
     } else {
-        contentArea.innerHTML = '<p>No accounts stored.</p>';
+        alert("No vault to back up.");
     }
 }
 
+// Save JSON file to disk
+function saveToFile(data, filename) {
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
 
-// Function to add a new account to localStorage
-function addNewAccount(service, username, password, notes, tags) {
-    let storedAccountData = JSON.parse(localStorage.getItem('accountData')) || { accounts: [] }; // Get existing accounts
+// Restore vault from a backup
+function restoreVaultFromFile() {
+    const fileInput = document.getElementById('restore-file-input');
+    const file = fileInput.files[0];
+    if (file) {
+        restoreVault(file);
+    }
+}
 
-    // Create the new account
-    const newAccount = {
-        service: service,
-        username: username,
-        password: password,
-        notes: notes,
-        tags: tags
+// Restore vault from a backup file
+function restoreVault(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const vaultData = e.target.result;
+        const vaultName = prompt("Enter name for the restored vault:");
+        if (vaultName) {
+            localStorage.setItem(vaultName + '.json', vaultData);
+            openVault(vaultName + ".json");
+        }
     };
+    reader.readAsText(file);
+}
 
-    // Add the new account to the list
-    storedAccountData.accounts.push(newAccount);
+// Placeholder for encryption and decryption
+function encryptData(data) {
+    console.log("Encrypting data...");
+    return btoa(data); // Base64 as a placeholder
+}
 
-    // Save the updated list back to localStorage
-    localStorage.setItem('accountData', JSON.stringify(storedAccountData));
+function decryptData(data) {
+    console.log("Decrypting data...");
+    return atob(data); // Base64 as a placeholder
+}
 
-    console.log('New account data:', service, username, password, notes, tags); // Debug
+// Function to log activity
+function logActivity(message) {
+    console.log(message);
+}
+
+// Placeholder for password generator & health
+function passwordGeneratorAndHealth() {
+    const contentArea = document.getElementById('dynamic-content');
+    contentArea.innerHTML = `<h1>Password Generator & Health</h1>`;
+
+    const password = prompt("Enter a password to evaluate:");
+    const strength = evaluatePasswordStrength(password);
+    const health = checkPasswordHealth(password);
+    contentArea.innerHTML += `<p>Password strength: ${strength}, Health: ${health}</p>`;
+}
+
+function evaluatePasswordStrength(password) {
+    if (password.length >= 8 && /\d/.test(password) && /[A-Z]/.test(password)) {
+        return "Strong";
+    } else if (password.length >= 6) {
+        return "Medium";
+    } else {
+        return "Weak";
+    }
+}
+
+function checkPasswordHealth(password) {
+    const vaultName = localStorage.getItem('currentVault');
+    const vaultData = JSON.parse(localStorage.getItem(vaultName));
+    const reused = vaultData.accounts.some(account => account.password === password);
+    return reused ? "Password is reused" : "Healthy";
 }
