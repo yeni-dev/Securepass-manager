@@ -124,25 +124,13 @@ function loadFeatureContent(feature) {
     } else if (feature === 'settings') {
         displaySettings(); // Placeholder for settings
     } else if (feature === 'logout') {
-        // Clear session data (clear current vault and login state)
-        localStorage.removeItem('currentVault');
-
-        // Hide vault selection and account management UI
-        document.getElementById('dynamic-content').innerHTML = '';
-
-        // Show login page again
-        document.getElementById('login-page').style.display = 'block';
-
-        // Log activity and simulate the logout
-        logActivity('Logged out.');
-
         // Optionally, refresh the page to reset any other state
         window.location.reload();
     }
 }
 
 
-// Display accounts in the Account Management section
+
 // Display accounts in the Account Management section
 function displayAccounts(vaultData) {
     const contentArea = document.getElementById('dynamic-content');
@@ -159,28 +147,55 @@ function displayAccounts(vaultData) {
         </form>
         <button id="view-json-btn">View Vault JSON</button> <!-- View JSON Vault Button -->
         <hr>
-        <div id="accounts-container" style="max-height: 400px; overflow-y: auto;">
+        
+        <!-- Search Bar for Filtering Accounts -->
+        <input type="text" class="search-bar"  id="search-bar" placeholder="Search accounts by service or username"  />
+
+        <div id="accounts-container" class="accounts-container">
             <!-- Accounts will be dynamically added here -->
         </div>
     `;
 
     const accountsContainer = document.getElementById('accounts-container');
+    const searchBar = document.getElementById('search-bar');
 
     // Display existing accounts
-    if (vaultData && vaultData.accounts.length > 0) {
-        vaultData.accounts.forEach(account => {
-            accountsContainer.innerHTML += `
-                <div>
-                    <h3>${account.service}</h3>
-                    <p><strong>Username:</strong> ${account.username}</p>
-                    <p><strong>Password:</strong> ${account.password}</p>
-                </div>
-                <hr>
-            `;
+    function filterAccounts(searchQuery) {
+        accountsContainer.innerHTML = ''; // Clear the previous list
+
+        const filteredAccounts = vaultData.accounts.filter(account => {
+            return account.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                account.username.toLowerCase().includes(searchQuery.toLowerCase());
         });
+
+        if (filteredAccounts.length > 0) {
+            filteredAccounts.forEach(account => {
+                accountsContainer.innerHTML += `
+                    <div>
+                        <h3>${account.service}</h3>
+                        <p><strong>Username:</strong> ${account.username}</p>
+                        <p><strong>Password:</strong> ${account.password}</p>
+                    </div>
+                    <hr>
+                `;
+            });
+        } else {
+            accountsContainer.innerHTML = '<p>No accounts match your search.</p>';
+        }
+    }
+
+    // Initial display of all accounts
+    if (vaultData && vaultData.accounts.length > 0) {
+        filterAccounts('');
     } else {
         accountsContainer.innerHTML = '<p>No accounts stored.</p>';
     }
+
+    // Filter accounts as the user types in the search bar
+    searchBar.addEventListener('input', function () {
+        const searchQuery = searchBar.value;
+        filterAccounts(searchQuery);
+    });
 
     // Handle adding new accounts
     document.getElementById('add-account-form').addEventListener('submit', function (e) {
@@ -198,6 +213,7 @@ function displayAccounts(vaultData) {
         alert(`Vault JSON: \n${JSON.stringify(vaultData)}`);
     });
 }
+
 
 
 // Add a new account to the vault
@@ -240,7 +256,7 @@ function backupVault() {
     if (vaultData) {
         // Create a backup with timestamp
         const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
-        const backupName = `${vaultName}_backup_${timestamp}.json`;
+        const backupName = `${vaultName}.json`;
 
         const blob = new Blob([vaultData], { type: "application/json" });
         const link = document.createElement("a");
@@ -250,17 +266,6 @@ function backupVault() {
     }
 }
 
-// Save JSON file to disk
-function saveToFile(data, filename) {
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
 
 // Restore vault from a backup file
 function restoreVaultFromFile() {

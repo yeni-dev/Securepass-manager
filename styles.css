@@ -105,3 +105,14 @@ body, html {
 canvas {
     margin-top: 20px;
 }
+
+.search-bar{
+    width: 99%;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.accounts-container {
+    max-height: 650px;
+    overflow-y: auto;
+}
