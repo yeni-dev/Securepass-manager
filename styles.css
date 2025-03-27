@@ -43,8 +43,7 @@ body, html {
 
 
 #activity-log {
-    height: 200px;  /* Force the height to be fixed temporarily */
-    width: 300px;
+
     overflow-y: scroll;
     padding: 10px;
     background-color: #34495e;
@@ -101,5 +100,8 @@ body, html {
 }
 
 .dynamic-content {
+    margin-top: 20px;
+}
+canvas {
     margin-top: 20px;
 }

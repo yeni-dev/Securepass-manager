@@ -1,6 +1,6 @@
 // Master login details for demonstration purposes
 const masterUser = "admin";
-const masterPass = "supersecret";
+const masterPass = "super";
 
 // Handle Login
 document.getElementById('login-form').addEventListener("submit", function (e) {
@@ -17,22 +17,6 @@ document.getElementById('login-form').addEventListener("submit", function (e) {
     }
 });
 
-function logActivity(message) {
-    const log = document.getElementById('activity-log'); // get the activity log container
-    const newLogItem = document.createElement('p'); // create a new log entry
-    newLogItem.textContent = message; // set the text of the log entry
-    log.appendChild(newLogItem); // add the log entry to the log
-
-    // Ensure the latest log entry is visible (auto scroll to bottom)
-
-// Add some log entries to simulate activity
-    logActivity("Test log #1");
-    logActivity("Test log #2");
-    logActivity("Test log #3");
-    logActivity("Test log #4");
-    logActivity("Test log #5");
-
-}
 
 // Display form for selecting or creating vaults
 function displayVaultSelection() {
@@ -81,18 +65,25 @@ function displayVaultSelection() {
     });
 }
 
-// Create a new vault
+
+// Open an existing vault
 function createNewVault(vaultName) {
     if (vaultName) {
         let vaults = JSON.parse(localStorage.getItem('vaults')) || [];
         vaults.push(vaultName + ".json");
         localStorage.setItem('vaults', JSON.stringify(vaults));
 
-        // Create the vault in localStorage (unencrypted for now)
-        localStorage.setItem(vaultName + '.json', JSON.stringify({ accounts: [] }));
+        // Create the vault in localStorage (unencrypted)
+        const vaultData = { accounts: [] };
+        localStorage.setItem(vaultName + '.json', JSON.stringify(vaultData));
         openVault(vaultName + ".json");
     }
+    logActivity("Creating vault");
 }
+
+
+
+
 
 // Open an existing vault
 function openVault(vaultName) {
@@ -107,6 +98,7 @@ function openVault(vaultName) {
     }
 }
 
+
 // Setup navigation for different panels
 
 document.querySelectorAll('.nav-btn').forEach(button => {
@@ -116,7 +108,6 @@ document.querySelectorAll('.nav-btn').forEach(button => {
     });
 });
 
-
 // Function to switch between active panels
 function loadFeatureContent(feature) {
     const contentArea = document.getElementById('dynamic-content'); // The dynamic content area
@@ -125,6 +116,7 @@ function loadFeatureContent(feature) {
         const vaultName = localStorage.getItem('currentVault');
         const vaultData = JSON.parse(localStorage.getItem(vaultName));
         displayAccounts(vaultData);
+        logActivity("account management accessed");
     } else if (feature === 'password-generator-health') {
         passwordGeneratorAndHealth();
     } else if (feature === 'backup-restore') {
@@ -132,43 +124,31 @@ function loadFeatureContent(feature) {
     } else if (feature === 'settings') {
         displaySettings(); // Placeholder for settings
     } else if (feature === 'logout') {
-        encryptAndLogout();  // Placeholder for logout functionality
+        // Clear session data (clear current vault and login state)
+        localStorage.removeItem('currentVault');
+
+        // Hide vault selection and account management UI
+        document.getElementById('dynamic-content').innerHTML = '';
+
+        // Show login page again
+        document.getElementById('login-page').style.display = 'block';
+
+        // Log activity and simulate the logout
+        logActivity('Logged out.');
+
+        // Optionally, refresh the page to reset any other state
+        window.location.reload();
     }
 }
 
-function encryptAndLogout() {
-    //encryption
 
-    window.location.reload();  // reload the page to simulate logout
-    logActivity('Logged out.');
-}
-
-
-
-
-
+// Display accounts in the Account Management section
 // Display accounts in the Account Management section
 function displayAccounts(vaultData) {
     const contentArea = document.getElementById('dynamic-content');
     contentArea.innerHTML = '<h1>Account Management</h1>';
 
-    // Display existing accounts
-    if (vaultData && vaultData.accounts.length > 0) {
-        vaultData.accounts.forEach(account => {
-            contentArea.innerHTML += `
-                <div>
-                    <h3>${account.service}</h3>
-                    <p><strong>Username:</strong> ${account.username}</p>
-                    <p><strong>Password:</strong> ${account.password}</p>
-                </div>
-                <hr>
-            `;
-        });
-    } else {
-        contentArea.innerHTML += '<p>No accounts stored.</p>';
-    }
-
-    // Add form to create new accounts
+    // Add form to create new accounts (always visible at the top)
     contentArea.innerHTML += `
         <h3>Add New Account</h3>
         <form id="add-account-form">
@@ -178,7 +158,29 @@ function displayAccounts(vaultData) {
             <button type="submit">Add Account</button>
         </form>
         <button id="view-json-btn">View Vault JSON</button> <!-- View JSON Vault Button -->
+        <hr>
+        <div id="accounts-container" style="max-height: 400px; overflow-y: auto;">
+            <!-- Accounts will be dynamically added here -->
+        </div>
     `;
+
+    const accountsContainer = document.getElementById('accounts-container');
+
+    // Display existing accounts
+    if (vaultData && vaultData.accounts.length > 0) {
+        vaultData.accounts.forEach(account => {
+            accountsContainer.innerHTML += `
+                <div>
+                    <h3>${account.service}</h3>
+                    <p><strong>Username:</strong> ${account.username}</p>
+                    <p><strong>Password:</strong> ${account.password}</p>
+                </div>
+                <hr>
+            `;
+        });
+    } else {
+        accountsContainer.innerHTML = '<p>No accounts stored.</p>';
+    }
 
     // Handle adding new accounts
     document.getElementById('add-account-form').addEventListener('submit', function (e) {
@@ -192,10 +194,11 @@ function displayAccounts(vaultData) {
     // Handle viewing the raw JSON for the current vault
     document.getElementById('view-json-btn').addEventListener('click', function () {
         const vaultName = localStorage.getItem('currentVault');
-        const vaultData = localStorage.getItem(vaultName);
-        alert(`Vault JSON: \n${vaultData}`);
+        const vaultData = JSON.parse(localStorage.getItem(vaultName));
+        alert(`Vault JSON: \n${JSON.stringify(vaultData)}`);
     });
 }
+
 
 // Add a new account to the vault
 function addNewAccount(service, username, password) {
@@ -215,15 +218,16 @@ function displayBackupRestoreOptions() {
     contentArea.innerHTML = `
         <h1>Backup & Restore</h1>
         <button onclick="backupVault()">Backup Vault</button>
+        
+        <h2 onclick="restoreVaultFromFile()">Restore Vault</h2>
         <input type="file" id="restore-file-input">
-        <button onclick="restoreVaultFromFile()">Restore Vault</button>
     `;
 
     // Handle restoring from file input
     document.getElementById('restore-file-input').addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
-            restoreVault(file);
+            restoreVaultFromFile(file);
         }
     });
 }
@@ -238,11 +242,11 @@ function backupVault() {
         const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
         const backupName = `${vaultName}_backup_${timestamp}.json`;
 
-        // For now, no encryption, just save the JSON
-        saveToFile(vaultData, backupName);
-        alert("Backup created successfully.");
-    } else {
-        alert("No vault to back up.");
+        const blob = new Blob([vaultData], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = backupName;
+        link.click();
     }
 }
 
@@ -258,56 +262,86 @@ function saveToFile(data, filename) {
     document.body.removeChild(a);
 }
 
-// Restore vault from a backup
+// Restore vault from a backup file
 function restoreVaultFromFile() {
     const fileInput = document.getElementById('restore-file-input');
     const file = fileInput.files[0];
+
     if (file) {
-        restoreVault(file);
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const fileContent = event.target.result;
+
+            // Create a text box and a button to ask for vault name
+            const restoreForm = document.createElement('div');
+            restoreForm.innerHTML = `
+                <label for="vault-name-input">Enter vault name for the restored file:</label>
+                <input type="text" id="vault-name-input" placeholder="Vault Name" required>
+                <button id="restore-vault-btn">Restore Vault</button>
+            `;
+
+            // Append the form to the content area (or another element on the page)
+            const contentArea = document.getElementById('dynamic-content');
+            contentArea.innerHTML = ''; // Clear any previous content
+            contentArea.appendChild(restoreForm);
+
+            // Handle the restore action when the user submits the vault name
+            document.getElementById('restore-vault-btn').addEventListener('click', function () {
+                const vaultName = document.getElementById('vault-name-input').value.trim();
+                if (vaultName) {
+                    localStorage.setItem(vaultName + '.json', fileContent);
+                    openVault(vaultName + '.json');
+                    logActivity("Restored vault: " + vaultName);
+                } else {
+                    alert("Vault name cannot be empty.");
+                }
+            });
+        };
+        reader.readAsText(file);
     }
 }
 
-// Restore vault from a backup file
-function restoreVault(file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const vaultData = e.target.result;
-        const vaultName = prompt("Enter name for the restored vault:");
-        if (vaultName) {
-            localStorage.setItem(vaultName + '.json', vaultData);
-            openVault(vaultName + ".json");
-        }
-    };
-    reader.readAsText(file);
-}
 
-// Placeholder for encryption and decryption
-function encryptData(data) {
-    console.log("Encrypting data...");
-    return btoa(data); // Base64 as a placeholder
-}
-
-function decryptData(data) {
-    console.log("Decrypting data...");
-    return atob(data); // Base64 as a placeholder
-}
 
 // Function to log activity
 function logActivity(message) {
-    console.log(message);
+    const log = document.getElementById('activity-log');
+    const newLogItem = document.createElement('p');
+    newLogItem.textContent = message;
+    log.appendChild(newLogItem);
 }
 
-// Placeholder for password generator & health
 function passwordGeneratorAndHealth() {
     const contentArea = document.getElementById('dynamic-content');
-    contentArea.innerHTML = `<h1>Password Generator & Health</h1>`;
 
-    const password = prompt("Enter a password to evaluate:");
-    const strength = evaluatePasswordStrength(password);
-    const health = checkPasswordHealth(password);
-    contentArea.innerHTML += `<p>Password strength: ${strength}, Health: ${health}</p>`;
+    // Create the content for password evaluation
+    contentArea.innerHTML = `
+        <h1>Password Generator & Health</h1>
+        <p>Enter a password to evaluate:</p>
+        <input type="text" id="password-input" placeholder="Enter password" required>
+        <button id="evaluate-password-btn">Evaluate Password</button>
+        <div id="password-result"></div>
+    `;
+
+    // Ensure that the button click works properly
+    document.getElementById('evaluate-password-btn').addEventListener('click', function() {
+        const password = document.getElementById('password-input').value.trim(); // Get the value of the input field
+        const resultDiv = document.getElementById('password-result'); // Result output area
+
+        // Check if password input is not empty
+        if (password) {
+            const strength = evaluatePasswordStrength(password);
+            const health = checkPasswordHealth(password);
+
+            // Show the results of evaluation
+            resultDiv.innerHTML = `<p>Password strength: ${strength}</p><p>Password health: ${health}</p>`;
+        } else {
+            resultDiv.innerHTML = '<p>Please enter a password to evaluate.</p>'; // Message if no password is entered
+        }
+    });
 }
 
+// Evaluate password strength
 function evaluatePasswordStrength(password) {
     if (password.length >= 8 && /\d/.test(password) && /[A-Z]/.test(password)) {
         return "Strong";
@@ -318,9 +352,43 @@ function evaluatePasswordStrength(password) {
     }
 }
 
+// Check if password is reused in any stored account
 function checkPasswordHealth(password) {
     const vaultName = localStorage.getItem('currentVault');
+    if (!vaultName) {
+        return "No vault selected.";
+    }
     const vaultData = JSON.parse(localStorage.getItem(vaultName));
     const reused = vaultData.accounts.some(account => account.password === password);
     return reused ? "Password is reused" : "Healthy";
+}
+
+
+
+function displaySettings() {
+    const contentArea = document.getElementById('dynamic-content');
+
+    // Create the settings content
+    contentArea.innerHTML = `
+        <h1>Settings</h1>
+        <p><strong>Warning:</strong> Clearing local storage will remove all vaults and data. This action cannot be undone!</p>
+        <label for="master-password">Enter master password to confirm:</label>
+        <input type="password" id="master-password" placeholder="Master Password" required>
+        <button id="clear-local-storage-btn">Clear All Local Storage</button>
+    `;
+
+    // Handle clearing local storage with password check
+    document.getElementById('clear-local-storage-btn').addEventListener('click', function () {
+        const enteredPassword = document.getElementById('master-password').value;
+
+        if (enteredPassword === masterPass) {
+            if (confirm("Are you sure you want to clear all local storage? This action cannot be undone.")) {
+                localStorage.clear();  // Clear all data in local storage
+                logActivity("All local storage has been cleared.");
+                alert("Local storage has been cleared.");
+            }
+        } else {
+            alert("Incorrect master password.");
+        }
+    });
 }
