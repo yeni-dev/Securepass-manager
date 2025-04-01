@@ -17,7 +17,6 @@ document.getElementById('login-form').addEventListener("submit", function (e) {
     }
 });
 
-
 // Display form for selecting or creating vaults
 function displayVaultSelection() {
     const contentArea = document.getElementById('dynamic-content');
@@ -65,7 +64,6 @@ function displayVaultSelection() {
     });
 }
 
-
 // Open an existing vault
 function createNewVault(vaultName) {
     if (vaultName) {
@@ -81,10 +79,6 @@ function createNewVault(vaultName) {
     logActivity("Creating vault");
 }
 
-
-
-
-
 // Open an existing vault
 function openVault(vaultName) {
     logActivity(`Opened vault: ${vaultName}`);
@@ -98,9 +92,7 @@ function openVault(vaultName) {
     }
 }
 
-
 // Setup navigation for different panels
-
 document.querySelectorAll('.nav-btn').forEach(button => {
     button.addEventListener('click', function() {
         const feature = button.getAttribute('data-feature'); // get the selected feature
@@ -128,8 +120,6 @@ function loadFeatureContent(feature) {
         window.location.reload();
     }
 }
-
-
 
 // Display accounts in the Account Management section
 function displayAccounts(vaultData) {
@@ -214,8 +204,6 @@ function displayAccounts(vaultData) {
     });
 }
 
-
-
 // Add a new account to the vault
 function addNewAccount(service, username, password) {
     const vaultName = localStorage.getItem('currentVault');
@@ -266,7 +254,6 @@ function backupVault() {
     }
 }
 
-
 // Restore vault from a backup file
 function restoreVaultFromFile() {
     const fileInput = document.getElementById('restore-file-input');
@@ -306,8 +293,6 @@ function restoreVaultFromFile() {
     }
 }
 
-
-
 // Function to log activity
 function logActivity(message) {
     const log = document.getElementById('activity-log');
@@ -319,30 +304,38 @@ function logActivity(message) {
 function passwordGeneratorAndHealth() {
     const contentArea = document.getElementById('dynamic-content');
 
-    // Create the content for password evaluation
+    // Create the content for password evaluation and generation
     contentArea.innerHTML = `
         <h1>Password Generator & Health</h1>
         <p>Enter a password to evaluate:</p>
         <input type="text" id="password-input" placeholder="Enter password" required>
         <button id="evaluate-password-btn">Evaluate Password</button>
         <div id="password-result"></div>
+
+        <h2>Generate Strong Password</h2>
+        <button id="generate-password-btn">Generate Strong Password</button>
+        <p>Generated Password:</p>
+        <input type="text" id="generated-password" readonly>
     `;
 
-    // Ensure that the button click works properly
+    // Password evaluation event listener
     document.getElementById('evaluate-password-btn').addEventListener('click', function() {
-        const password = document.getElementById('password-input').value.trim(); // Get the value of the input field
-        const resultDiv = document.getElementById('password-result'); // Result output area
+        const password = document.getElementById('password-input').value.trim();
+        const resultDiv = document.getElementById('password-result');
 
-        // Check if password input is not empty
         if (password) {
             const strength = evaluatePasswordStrength(password);
             const health = checkPasswordHealth(password);
-
-            // Show the results of evaluation
             resultDiv.innerHTML = `<p>Password strength: ${strength}</p><p>Password health: ${health}</p>`;
         } else {
-            resultDiv.innerHTML = '<p>Please enter a password to evaluate.</p>'; // Message if no password is entered
+            resultDiv.innerHTML = '<p>Please enter a password to evaluate.</p>';
         }
+    });
+
+    // Password generation event listener
+    document.getElementById('generate-password-btn').addEventListener('click', function() {
+        const generatedPassword = generateStrongPassword(16); // Generate a 16-character strong password
+        document.getElementById('generated-password').value = generatedPassword;
     });
 }
 
@@ -368,7 +361,16 @@ function checkPasswordHealth(password) {
     return reused ? "Password is reused" : "Healthy";
 }
 
-
+// Generate a strong password
+function generateStrongPassword(length) {
+    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+{}[]<>?/";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        password += charset[randomIndex];
+    }
+    return password;
+}
 
 function displaySettings() {
     const contentArea = document.getElementById('dynamic-content');
