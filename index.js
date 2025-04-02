@@ -236,17 +236,52 @@ function displayBackupRestoreOptions() {
     });
 }
 
-// Backup the current vault
-function backupVault() {
+async function deriveKeyFromPassword(password) {
+    const encoder = new TextEncoder();
+    const keyMaterial = await window.crypto.subtle.importKey(
+        "raw", encoder.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
+    );
+    return await window.crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: encoder.encode("vault_salt"), // Fixed salt for consistency
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt", "decrypt"]
+    );
+}
+
+async function encryptData(data, password) {
+    const key = await deriveKeyFromPassword(password);
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encryptedData = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(data));
+    return JSON.stringify({
+        iv: btoa(String.fromCharCode(...iv)),
+        encrypted: btoa(String.fromCharCode(...new Uint8Array(encryptedData)))
+    });
+}
+
+async function decryptData(encryptedJson, password) {
+    const key = await deriveKeyFromPassword(password);
+    const dataObj = JSON.parse(encryptedJson);
+    const iv = new Uint8Array(atob(dataObj.iv).split("").map(c => c.charCodeAt(0)));
+    const encryptedData = new Uint8Array(atob(dataObj.encrypted).split("").map(c => c.charCodeAt(0)));
+    const decryptedData = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encryptedData);
+    return new TextDecoder().decode(decryptedData);
+}
+
+// Backup Vault with Encryption
+async function backupVault() {
     const vaultName = localStorage.getItem('currentVault');
     const vaultData = localStorage.getItem(vaultName);
-
     if (vaultData) {
-        // Create a backup with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
+        const encryptedVault = await encryptData(vaultData, masterPass);
         const backupName = `${vaultName}.json`;
-
-        const blob = new Blob([vaultData], { type: "application/json" });
+        const blob = new Blob([encryptedVault], { type: "application/json" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = backupName;
@@ -254,44 +289,45 @@ function backupVault() {
     }
 }
 
-// Restore vault from a backup file
-function restoreVaultFromFile() {
+// Restore Vault with Decryption
+async function restoreVaultFromFile() {
     const fileInput = document.getElementById('restore-file-input');
     const file = fileInput.files[0];
-
     if (file) {
         const reader = new FileReader();
-        reader.onload = function (event) {
-            const fileContent = event.target.result;
+        reader.onload = async function (event) {
+            try {
+                const encryptedContent = event.target.result;
+                const decryptedVault = await decryptData(encryptedContent, masterPass);
 
-            // Create a text box and a button to ask for vault name
-            const restoreForm = document.createElement('div');
-            restoreForm.innerHTML = `
-                <label for="vault-name-input">Enter vault name for the restored file:</label>
-                <input type="text" id="vault-name-input" placeholder="Vault Name" required>
-                <button id="restore-vault-btn">Restore Vault</button>
-            `;
+                const restoreForm = document.createElement('div');
+                restoreForm.innerHTML = `
+                    <label for="vault-name-input">Enter vault name for the restored file:</label>
+                    <input type="text" id="vault-name-input" placeholder="Vault Name" required>
+                    <button id="restore-vault-btn">Restore Vault</button>
+                `;
+                const contentArea = document.getElementById('dynamic-content');
+                contentArea.innerHTML = '';
+                contentArea.appendChild(restoreForm);
 
-            // Append the form to the content area (or another element on the page)
-            const contentArea = document.getElementById('dynamic-content');
-            contentArea.innerHTML = ''; // Clear any previous content
-            contentArea.appendChild(restoreForm);
-
-            // Handle the restore action when the user submits the vault name
-            document.getElementById('restore-vault-btn').addEventListener('click', function () {
-                const vaultName = document.getElementById('vault-name-input').value.trim();
-                if (vaultName) {
-                    localStorage.setItem(vaultName + '.json', fileContent);
-                    openVault(vaultName + '.json');
-                    logActivity("Restored vault: " + vaultName);
-                } else {
-                    alert("Vault name cannot be empty.");
-                }
-            });
+                document.getElementById('restore-vault-btn').addEventListener('click', function () {
+                    const vaultName = document.getElementById('vault-name-input').value.trim();
+                    if (vaultName) {
+                        localStorage.setItem(vaultName, decryptedVault);
+                        openVault(vaultName);
+                        logActivity("Restored vault: " + vaultName);
+                    } else {
+                        alert("Vault name cannot be empty.");
+                    }
+                });
+            } catch (error) {
+                alert("Error decrypting vault. Incorrect password or corrupted file.");
+            }
         };
         reader.readAsText(file);
     }
 }
+
 
 // Function to log activity
 function logActivity(message) {
