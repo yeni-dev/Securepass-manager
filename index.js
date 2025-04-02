@@ -115,6 +115,7 @@ function loadFeatureContent(feature) {
         displayBackupRestoreOptions();
     } else if (feature === 'settings') {
         displaySettings(); // Placeholder for settings
+        logActivity("Settings Accessed");
     } else if (feature === 'logout') {
         // Optionally, refresh the page to reset any other state
         window.location.reload();
@@ -286,6 +287,7 @@ async function backupVault() {
         link.href = URL.createObjectURL(blob);
         link.download = backupName;
         link.click();
+        logActivity("Backup made")
     }
 }
 
@@ -418,6 +420,8 @@ function displaySettings() {
         <label for="master-password">Enter master password to confirm:</label>
         <input type="password" id="master-password" placeholder="Master Password" required>
         <button id="clear-local-storage-btn">Clear All Local Storage</button>
+        <h2>Theme Settings</h2>
+        <button id="theme-toggle-btn">Toggle Theme</button>
     `;
 
     // Handle clearing local storage with password check
@@ -434,4 +438,31 @@ function displaySettings() {
             alert("Incorrect master password.");
         }
     });
+
+    // Handle theme toggling
+    document.getElementById('theme-toggle-btn').addEventListener('click', function () {
+        toggleTheme();
+    });
 }
+function toggleTheme() {
+    const body = document.body;
+    if (body.classList.contains('dark-theme')) {
+        body.classList.remove('dark-theme');
+        body.classList.add('high-contrast-theme');
+        localStorage.setItem('theme', 'high-contrast');
+    } else if (body.classList.contains('high-contrast-theme')) {
+        body.classList.remove('high-contrast-theme');
+        body.classList.add('light-theme');
+        localStorage.setItem('theme', 'light');
+    } else {
+        body.classList.remove('light-theme');
+        body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Load saved theme on startup
+window.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.add(savedTheme + '-theme');
+});
