@@ -22,7 +22,7 @@ To run SecurePass locally:
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/yourusername/securepass.git
+   git clone https://github.com/yeni-dev/securepass-manager.git
    ```
 
 2. Open the `index.html` file in your preferred browser.
